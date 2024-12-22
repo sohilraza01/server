@@ -90,6 +90,24 @@ app.post('/donations', async (req, res) => {
       res.status(500).json({ message: "Error saving donations", error: error.message });
     }
   });
+
+//   post the data in the pending component
+app.get('/donations/pending', async (req, res) => {
+    try {
+      const newDonation = new Donation({
+        donorName: req.body.donorName,
+        foodType: req.body.foodType,
+        quantity: req.body.quantity,
+        status: "Pending", // Default to Pending
+        date: new Date().toLocaleDateString(),
+      });
+      const savedDonation = await newDonation.save();
+      res.status(201).json(savedDonation);
+    } catch (error) {
+      res.status(500).json({ message: "Error adding donation", error: error.message });
+    }
+  });
+  
   
   
   // Fetch Donations Route (optional for history)
