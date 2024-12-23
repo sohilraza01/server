@@ -92,21 +92,21 @@ app.post('/donations', async (req, res) => {
   });
 
 //   post the data in the pending component
-app.get('/donations/pending', async (req, res) => {
-    try {
-      const newDonation = new Donation({
-        donorName: req.body.donorName,
-        foodType: req.body.foodType,
-        quantity: req.body.quantity,
-        status: "Pending", // Default to Pending
-        date: new Date().toLocaleDateString(),
-      });
-      const savedDonation = await newDonation.save();
-      res.status(201).json(savedDonation);
-    } catch (error) {
-      res.status(500).json({ message: "Error adding donation", error: error.message });
-    }
-  });
+// app.get('/donations/pending', async (req, res) => {
+//     try {
+//       const newDonation = new Donation({
+//         donorName: req.body.donorName,
+//         foodType: req.body.foodType,
+//         quantity: req.body.quantity,
+//         status: "Pending", // Default to Pending
+//         date: new Date().toLocaleDateString(),
+//       });
+//       const savedDonation = await newDonation.save();
+//       res.status(201).json(savedDonation);
+//     } catch (error) {
+//       res.status(500).json({ message: "Error adding donation", error: error.message });
+//     }
+//   });
   
   
   
@@ -130,6 +130,58 @@ app.get('/donations', async (req, res) => {
       res.status(500).json({ message: 'Error fetching donations', error: error.message });
     }
   });
+  
+
+  app.get("/dashboard", async (req, res) => {
+    try {
+      // Count donors with valid login IDs
+      const donorCount = await Donation.distinct("donorName", { donorId: { $exists: true, $ne: null } }).length;
+  
+      // Count NGOs with valid login IDs
+      const ngoCount = await Donation.distinct("ngoName", { ngoId: { $exists: true, $ne: null } }).length;
+  
+      // Count donations with "Pending" status
+      const notCompletedCount = await Donation.countDocuments({ status: "Pending" });
+  
+      // Count donations with "Completed" status
+      const completedCount = await Donation.countDocuments({ status: "Completed" });
+  
+      // Send the counts to the frontend
+      res.json({
+        adminCount: donorCount,
+        ngoCount,
+        notCompletedCount, // The count of pending donations
+        completedCount,
+      });
+  
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      res.status(500).json({ error: "Failed to fetch dashboard data" });
+    }
+  });
+
+
+//   Put the data into completed 
+
+app.put('/donations/:id/complete', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updatedDonation = await Donation.findByIdAndUpdate(
+            id,
+            { status: "Completed" },
+            { new: true }
+        );
+
+        if (!updatedDonation) {
+            return res.status(404).json({ message: "Donation not found" });
+        }
+
+        res.status(200).json(updatedDonation);
+    } catch (error) {
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
   
 
 //   Delete Donation history route

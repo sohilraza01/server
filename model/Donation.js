@@ -15,6 +15,13 @@ const DonationSchema = new mongoose.Schema({
         type: String, 
         required: true 
     },
+    status: 
+    { 
+        type: String,
+        enum: ["Pending", "Completed"],
+        default: "Pending", 
+    },
+    
     date: { 
         type: String, 
         required: true 
